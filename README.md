@@ -11,7 +11,6 @@
 - `src/services/demoCaseService.js` 提供本地页面数据和短暂加载演示，**不创建真实 taskId**。
 - `src/styles/flowviz.css` 由 `App.vue` 引入，不要求修改 `main.js`。
 
-**此包不会修改**原项目的 `src/router/index.js` 和 `src/main.js`。请确保 `src/router/index.js` 使用 `vue-router`（不是 `router`），已定义 `/, /project, /cases, /cases/:caseId, /simulation, /about, /404` 路由，并且依赖中安装了 `vue-router@4`。
 
 ```bash
 cd /home/.../yuxi
