@@ -5,6 +5,8 @@ on:
   push:
     branches:
       - linxi
+    tags:
+      - 'linxi-v*'
 
 permissions:
   contents: read
@@ -15,14 +17,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout linxi code
+      - name: Checkout source
         uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '24'
-          cache: 'npm'
+          cache: npm
 
       - name: Install dependencies
         run: npm ci
@@ -30,10 +32,41 @@ jobs:
       - name: Build website
         run: npm run build
 
-      - name: Upload dist
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: linxi-website
           path: dist/
           if-no-files-found: error
-          retention-days: 14
+
+  release:
+    name: Publish Release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/linxi-v')
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download build
+        uses: actions/download-artifact@v4
+        with:
+          name: linxi-website
+          path: dist/
+
+      - name: Package website
+        run: |
+          cd dist
+          zip -r ../linxi-website.zip .
+
+      - name: Create prerelease
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            linxi-website.zip \
+            --verify-tag \
+            --title "Linxi Frontend $GITHUB_REF_NAME" \
+            --notes "FlowViz 业务前端演示构建，非完整项目正式版。" \
+            --prerelease
