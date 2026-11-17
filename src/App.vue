@@ -10,4 +10,3 @@ import './styles/flowviz.css'
   <SiteFooter />
   <footer class="egg-footer"></footer>
 </template>
-<footer class="egg-footer"> </footer>
