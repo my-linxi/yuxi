@@ -1,0 +1,20 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, "Microsoft YaHei", sans-serif;
+  background-color: #f5f7fa;
+  color: #1f2937;
+}
+
+#app {
+  min-height: 100vh;
+}
+
+.egg-footer::after { content: "\0050\006f\0077\0065\0072\0020\0042\0079\0020\004c\0069\006e\0058\0069\0020\ff01\0020\0043\0069\0061\006c\006c\006f\ff5e\0020\0028\2220\30fb\03c9\003c\0020\0029\2312\2605\0020\ff01"; display: block; text-align: center;  padding: 20px 0;  color: #94a3b8;  font-size: 15px;  opacity: 0.9;}
+
+button {
+  cursor: pointer;
+}
