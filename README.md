@@ -8,7 +8,11 @@
 
 在仓库根目录使用 Node.js 24 执行以下命令，然后打开终端显示的本地地址。
 
+**终端执行命令如下，前提是安装了node环境**
+
 ```bash
+git clone https://github.com/oscarchenxixi-rgb/yuxi.git yuxi
+cd yuxi
 npm ci
 npm run dev
 ```
