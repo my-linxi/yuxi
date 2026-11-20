@@ -166,7 +166,7 @@ async function submit() {
               <p v-if="fieldErrors[item.key]" :id="`${item.key}-error`" class="input-error">{{ fieldErrors[item.key] }}</p>
             </div>
             <p v-if="!(schema?.fields?.length)" class="notice warning">该案例尚无参数 schema，请先让数据组提供相应字段。</p>
-            <div v-if="schema?.demoOnly" class="notice warning">当前演示参数为纯 UI 联调占位（无物理意义），并非来自论文的真实工况参数；正式联调时必须替换为案例 JSON 的 parameterSchema。</div>
+            <div v-if="schema?.demoOnly" class="notice warning">当前案例已接入 CFD 参考结果。上方预设和滑块仅用于演示配置流程，调整后不会改变已保存的压力和速度结果。</div>
           </div>
           <div class="form-section"><h2>初始显示设置</h2><div class="two-columns"><label class="form-field"><span>初始物理场</span><select v-model="form.field" :disabled="submitting"><option v-for="f in FIELD_OPTIONS" :key="f.value" :value="f.value">{{ f.label }}（{{ f.unit }}）</option></select></label><label class="form-field"><span>初始数据层</span><select v-model="form.layer" :disabled="submitting"><option v-for="l in LAYER_OPTIONS" :key="l.value" :value="l.value">{{ l.label }}</option></select></label><label class="form-field"><span>点云质量</span><select v-model="form.quality" :disabled="submitting"><option value="fast">流畅</option><option value="balanced">均衡</option><option value="fine">精细</option></select></label><label class="form-field"><span>调色板</span><select v-model="form.palette" :disabled="submitting"><option value="viridis">Viridis</option><option value="turbo">Turbo</option><option value="coolwarm">Coolwarm</option></select></label></div></div>
           <div class="notice">当前为静态数据驱动的流程演示，提交参数不会触发真实 CFD 或模型计算。</div>
