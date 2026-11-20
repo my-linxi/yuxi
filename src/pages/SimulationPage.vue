@@ -27,7 +27,7 @@ const form = reactive({
   presetId: '',
   parameters: {},
   field: 'surfacePressure',
-  layer: 'prediction',
+  layer: 'reference',
   quality: 'balanced',
   palette: 'viridis'
 })
@@ -37,7 +37,7 @@ function defaultsForCurrentCase() {
   form.presetId = currentSchema?.presets?.[0]?.id ?? ''
   form.parameters = Object.fromEntries((currentSchema?.fields ?? []).map((field) => [field.key, field.defaultValue]))
   form.field = 'surfacePressure'
-  form.layer = 'prediction'
+  form.layer = 'reference'
   form.quality = 'balanced'
   form.palette = 'viridis'
   Object.keys(fieldErrors).forEach((key) => delete fieldErrors[key])
@@ -61,7 +61,7 @@ const hasChanges = computed(() => {
   const s = schema.value
   return form.presetId !== (s?.presets?.[0]?.id ?? '') ||
     (s?.fields ?? []).some((f) => form.parameters[f.key] !== f.defaultValue) ||
-    form.field !== 'surfacePressure' || form.layer !== 'prediction' ||
+    form.field !== 'surfacePressure' || form.layer !== 'reference' ||
     form.quality !== 'balanced' || form.palette !== 'viridis'
 })
 
