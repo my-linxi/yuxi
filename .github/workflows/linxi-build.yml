@@ -43,8 +43,8 @@ jobs:
           if-no-files-found: error
 
       # 2. 带 --base=/linxi/ 编译 -> 专用于 GitHub Pages 部署
-      - name: 构建 Pages 产物 (base=/linxi/)
-        run: npm run build -- --base=/linxi/
+      - name: 构建 Pages 产物 --base=/${{ github.event.repository.name }}/
+        run: npm run build -- --base=/${{ github.event.repository.name }}/
 
       - name: 复制 index.html 为 404.html
         run: cp dist/index.html dist/404.html
