@@ -2,7 +2,7 @@
 import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { CASES, FIELD_OPTIONS } from '../data/cases'
-import { isSyntheticDemo, syntheticCaseId } from '../data/case0577Cfd.js'
+import { isSyntheticDemo, referenceCaseIds, syntheticCaseId } from '../data/case0577Cfd.js'
 
 const FlowScene = defineAsyncComponent(() => import('../components/FlowScene.vue'))
 const route = useRoute()
@@ -29,7 +29,7 @@ const quality = computed({
 const layerMap = { reference: 'reference', prediction: 'prediction', error: 'error', absoluteError: 'error' }
 const layer = computed({
   get: () => Object.hasOwn(layerMap, route.query.layer) ? layerMap[route.query.layer]
-    : (syntheticDemo.value || route.query.case === '0577' ? 'reference' : 'prediction'),
+    : (syntheticDemo.value || referenceDemo.value ? 'reference' : 'prediction'),
   set: (value) => updateQuery('layer', value === 'error' ? 'absoluteError' : value),
 })
 const compareMode = ref(false)
@@ -43,6 +43,7 @@ const fullscreen = ref(false)
 
 const currentCase = computed(() => CASES.find((item) => item.caseId === String(route.query.case)) || CASES[0])
 const syntheticDemo = computed(() => isSyntheticDemo(route.query))
+const referenceDemo = computed(() => !syntheticDemo.value && referenceCaseIds.includes(route.query.case))
 const syntheticLabel = '合成演示数据'
 const currentField = computed(() => FIELD_OPTIONS.find((item) => item.value === fieldId.value) || FIELD_OPTIONS[0])
 const fieldKey = computed(() => fieldId.value.includes('Pressure') ? 'pressure' : 'speed')
@@ -88,13 +89,13 @@ onBeforeUnmount(() => { document.removeEventListener('keydown', onKeyDown); docu
     <section class="visualization-heading">
       <div>
         <div class="visualization-eyebrow">PIPE FLOW · INTERACTIVE RESULT</div>
-        <div class="title-row"><h1>三维流场可视化</h1><span class="demo-badge">{{ syntheticDemo ? syntheticLabel : '示意数据' }}</span></div>
-        <p>{{ syntheticDemo ? syntheticCaseId : currentCase.name }} · {{ currentField.label }} · {{ layerLabel }}。当前点云用于验证界面和交互。</p>
+        <div class="title-row"><h1>三维流场可视化</h1><span class="demo-badge">{{ syntheticDemo ? syntheticLabel : referenceDemo ? 'CFD 参考数据' : '示意数据' }}</span></div>
+        <p>{{ syntheticDemo ? syntheticCaseId : currentCase.name }} · {{ currentField.label }} · {{ layerLabel }}。</p>
       </div>
       <div class="case-summary">
         <span>{{ syntheticDemo ? '联调' : currentCase.levelText }}</span>
         <strong>{{ syntheticDemo ? syntheticLabel : currentCase.name }}</strong>
-        <small>{{ syntheticDemo ? '来源：程序生成' : '来源：main.pdf' }}</small>
+        <small>{{ syntheticDemo ? '程序生成' : referenceDemo ? 'SOLIDWORKS Flow Simulation' : '程序生成的示意数据' }}</small>
       </div>
     </section>
 
@@ -102,7 +103,7 @@ onBeforeUnmount(() => { document.removeEventListener('keydown', onKeyDown); docu
       <div ref="viewer" class="visualization-viewer">
         <header class="viewer-head">
           <div class="viewer-title"><i></i><strong>{{ compareMode ? '三栏同步对比' : '三维流场' }}</strong><span>{{ currentField.label }} / {{ layerLabel }}</span></div>
-          <div class="viewer-meta"><span>{{ syntheticDemo ? '固定采样' : qualityLabel }}</span><span>{{ palette }}</span></div>
+          <div class="viewer-meta"><span>{{ syntheticDemo || referenceDemo ? '固定采样' : qualityLabel }}</span><span>{{ palette }}</span></div>
           <div class="viewer-actions"><button type="button" title="重置视角" @click="resetView">⌖</button><button type="button" :title="fullscreen ? '退出全屏' : '全屏查看'" @click="toggleFullscreen">⛶</button></div>
         </header>
 
@@ -115,7 +116,7 @@ onBeforeUnmount(() => { document.removeEventListener('keydown', onKeyDown); docu
           </div>
           <FlowScene v-else :ref="(el) => setSceneRef(el, 0)" view-id="single" :camera-sync="cameraSync" :sync-source="syncSource" :field="fieldKey" :layer="layer" :playing="playing" :palette="palette" :point-size="pointSize" :quality="quality" :camera-view="cameraView" :selected-index="selectedPoint?.index ?? -1" compact-view @camera-change="syncCamera" @interaction-start="stopAutoRotate" @point-hover="hoveredPoint = $event" @point-select="selectedPoint = $event" @point-clear="clearPoint" />
           <div class="interaction-hint">左键旋转 · 滚轮缩放 · 右键平移 · 双击重置 · 点击锁定测点</div>
-          <div class="color-legend"><span>低</span><div :style="legendStyle"></div><span>高</span><small>{{ currentField.label }} · {{ currentField.unit }}（示意）</small></div>
+          <div class="color-legend"><span>低</span><div :style="legendStyle"></div><span>高</span><small>{{ currentField.label }} · {{ currentField.unit }}</small></div>
         </div>
       </div>
 
@@ -145,7 +146,7 @@ onBeforeUnmount(() => { document.removeEventListener('keydown', onKeyDown); docu
           <template v-if="currentPoint"><dl><dt>编号</dt><dd>#{{ currentPoint.index + 1 }}</dd><dt>坐标 X / Y / Z</dt><dd>{{ currentPoint.x }} / {{ currentPoint.y }} / {{ currentPoint.z }}</dd><dt>{{ currentPoint.layer }}</dt><dd>{{ currentPoint.value }} <small>{{ currentPoint.unit }}</small></dd></dl><button v-if="selectedPoint" type="button" class="unlock-button" @click="clearPoint">解除锁定</button></template>
           <p v-else>将鼠标移到测点上查看信息；点击测点可锁定。</p>
         </section>
-        <p class="demo-note">当前点云和数值由程序生成，仅用于交互联调，不代表论文或项目的真实仿真结果。</p>
+        <p class="demo-note">{{ referenceDemo ? '当前案例提供 CFD 参考点云。预测值与绝对误差待接入。' : '当前点云由程序生成，用于交互联调。' }}</p>
       </aside>
     </section>
   </main>

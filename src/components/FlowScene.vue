@@ -4,7 +4,7 @@ import { useRoute } from 'vue-router'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { createDemoFieldData } from '../data/demoFieldData.js'
-import { isSyntheticDemo, loadCase0577Field, loadSyntheticField, syntheticCaseId } from '../data/case0577Cfd.js'
+import { isSyntheticDemo, loadReferenceField, loadSyntheticField, referenceCaseIds, syntheticCaseId } from '../data/case0577Cfd.js'
 
 const props = defineProps({
   field: { type: String, default: 'speed' },
@@ -23,9 +23,12 @@ const props = defineProps({
 const emit = defineEmits(['point-hover', 'point-select', 'point-clear', 'camera-change', 'interaction-start'])
 const host = ref(null)
 const route = useRoute()
-const case0577 = computed(() => String(route?.query.case ?? '') === '0577')
 const syntheticDemo = computed(() => isSyntheticDemo(route?.query))
-const staticDataset = computed(() => syntheticDemo.value ? 'synthetic' : case0577.value ? 'cfd' : '')
+const caseId = computed(() => String(route?.query.case ?? '0415'))
+const staticDataset = computed(() => {
+  if (syntheticDemo.value) return syntheticCaseId
+  return referenceCaseIds.includes(caseId.value) ? caseId.value : ''
+})
 const cfdField = computed(() => String(route?.query.field ?? 'surfacePressure'))
 const cfdStatus = ref('')
 const cfdNotice = ref('')
@@ -121,17 +124,18 @@ async function updateDataset() {
     return
   }
   const synthetic = syntheticDemo.value
-  const label = synthetic ? `${syntheticCaseId} · 合成演示数据` : 'Case 0577 CFD 参考数据'
+  const datasetId = staticDataset.value
+  const label = synthetic ? `${syntheticCaseId} · 合成演示数据` : `Case ${datasetId} · CFD 参考数据`
   if (props.layer !== 'reference') {
     cfdStatus.value = synthetic ? `${label} · 此栏无预测或误差数据，请选择「参考值」查看合成点云。` :
-      'Case 0577 暂无同点位预测或误差数据。请选择参考值。'
+      `Case ${datasetId} 暂无同点位预测或误差数据。请选择参考值。`
     return
   }
 
   cfdStatus.value = `正在读取 ${label}…`
   try {
-    const loadField = synthetic ? loadSyntheticField : loadCase0577Field
-    const data = await loadField(cfdField.value)
+    const field = cfdField.value
+    const data = await (synthetic ? loadSyntheticField(field) : loadReferenceField(datasetId, field))
     if (version !== loadVersion || webglError.value) return
     if (!data) {
       cfdStatus.value = `${label} · 此物理场暂无数据。`

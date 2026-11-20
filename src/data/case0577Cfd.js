@@ -1,5 +1,6 @@
 const sources = {
   surfacePressure: ['surface-pressure.json', 'kPa'],
+  volumePressure: ['volume-pressure.json', 'kPa'],
   speed: ['volume-speed.json', 'm/s'],
   ux: ['volume-speed.json', 'm/s'],
   uy: ['volume-speed.json', 'm/s'],
@@ -7,8 +8,11 @@ const sources = {
 }
 const requests = new Map()
 
-export function loadCase0577Field(field) {
-  return loadPointField('0577', 'case-0577', 'reference', field)
+export const referenceCaseIds = ['0415', '0577', '0072']
+
+export function loadReferenceField(caseId, field) {
+  if (!referenceCaseIds.includes(caseId)) return null
+  return loadPointField(caseId, `case-${caseId}`, 'reference', field)
 }
 
 export const syntheticCaseId = 'synthetic-pipe-000'
