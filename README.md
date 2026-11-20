@@ -28,6 +28,7 @@ npm run dev
 - 案例库：`/cases`，支持关键词搜索、误差筛选、排序和案例指标对比
 - 案例详情：`/cases/0415`, `/cases/0577`, `/cases/0072`
 - 参数配置：`/simulation?case=0415`
+- 三维预览：`/visualization` 默认显示合成管道的近壁面压力，可切换到速度、旋转视角并点击测点查看数值。
 - 关于我们：`/about`
 - 404：`/404`
 
@@ -97,7 +98,7 @@ location /flowviz/ {
 
 1. 数据组给出正式案例 JSON 后，将 `caseInfo.parameterSchema` 中的演示占位参数替换为真实 JSON 中 `presets` 和 `fields` 的字段结构；不要自行造数据。改动字段前应先与团队确认接口契约。
 2. Mock 组提供 `submitSimulation()` 后，在 `SimulationPage.vue` 替换 `submitSimulationPreview()`；创建成功后通过 `router.push('/tasks/' + taskId)` 跳转；任务状态页与结果页交给其他组员维护。
-3. Three.js 组提供 `FlowScene.vue` 后，将 `HomePage.vue` 内 `hero-preview` 占位区域换成接收 props 的三维组件。
+3. Three.js 预览从 `public/cfd/synthetic-pipe-000/synthetic/` 读取合成样例。Case 0577 的真实参考数据可按同一字段结构接入 `public/cfd/case-0577/reference/` 下的 `surface-pressure.json` 和 `volume-speed.json`。缺少相应文件时页面显示“暂无数据”。
 4. 数据组提供论文授权预览图后，将 `CaseCard.vue` 和 `CaseDetailPage.vue` 的装饰性占位区域替换成真实案例图；严禁将占位图当作真实流场。
 5. 当前主导航中的“历史记录（待接入）”为不可点击提示，等历史组完成 `/history` 再改为实际路由。
 

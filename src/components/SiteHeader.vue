@@ -8,6 +8,7 @@ const navigation = [
   { label: '项目介绍', to: '/project' },
   { label: '案例库', to: '/cases' },
   { label: '仿真演示', to: '/simulation' },
+  { label: '三维预览', to: '/visualization' },
   { label: '关于我们', to: '/about' }
 ]
 const isSimulation = computed(() => route.path === '/simulation')

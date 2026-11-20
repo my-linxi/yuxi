@@ -188,7 +188,10 @@ async function submit() {
     <ModalDialog :open="showPreviewSuccess" label="演示验证结果" @close="showPreviewSuccess = false">
       <h2>表单验证通过</h2>
       <p>当前版本仅验证前端配置。任务服务接入后，才会创建任务并显示结果。</p>
-      <div class="right"><button type="button" class="btn btn-primary" @click="showPreviewSuccess = false">确认</button></div>
+      <div class="right action-gap">
+        <button type="button" class="btn btn-secondary" @click="showPreviewSuccess = false">关闭</button>
+        <RouterLink class="btn btn-primary" :to="{ path: '/visualization', query: { case: selectedCaseId, field: form.field, layer: form.layer, quality: form.quality, palette: form.palette } }">查看三维预览</RouterLink>
+      </div>
     </ModalDialog>
   </main>
 </template>
