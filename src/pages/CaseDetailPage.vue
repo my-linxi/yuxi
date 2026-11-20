@@ -37,6 +37,13 @@ const fieldLabel = computed(() => previewFields.find(({ value }) => value === fi
       </div>
     </section>
     <section class="container section compact-top"><div class="metric-summary"><div class="metric-box"><span>压力 relative L2</span><strong>{{ current.metrics.pressureRelativeL2.toFixed(3) }}</strong></div><div class="metric-box"><span>速度 relative L2</span><strong>{{ current.metrics.speedRelativeL2.toFixed(3) }}</strong></div><div class="metric-box"><span>案例定位</span><strong class="smaller">{{ current.levelText }}</strong></div></div><div v-if="current.caseId === '0072'" class="notice warning">Case 0072 用于展示困难工况与模型局限性，不能将其表现泛化至所有工况。</div><div class="notice">所有误差指标均来自参考论文 main.pdf；页面未执行真实 CFD 或模型训练。</div></section>
-    <section class="container section compact-top"><div class="detail-actions"><RouterLink v-if="index > 0" class="btn btn-secondary" :to="`/cases/${CASES[index - 1].caseId}`">← 上一个案例</RouterLink><span v-else></span><RouterLink class="btn btn-primary" :to="{ path: '/simulation', query: { case: current.caseId } }">使用此案例开始演示 →</RouterLink><RouterLink v-if="index < CASES.length - 1" class="btn btn-secondary" :to="`/cases/${CASES[index + 1].caseId}`">下一个案例 →</RouterLink><span v-else></span></div></section>
+    <section class="container section compact-top">
+      <div class="detail-actions">
+        <RouterLink v-if="index > 0" class="btn btn-secondary" :to="`/cases/${CASES[index - 1].caseId}`">← 上一个案例</RouterLink><span v-else></span>
+        <RouterLink class="btn btn-secondary" :to="{ path: '/visualization', query: { case: current.caseId, field } }">查看三维预览</RouterLink>
+        <RouterLink class="btn btn-primary" :to="{ path: '/simulation', query: { case: current.caseId } }">使用此案例开始演示 →</RouterLink>
+        <RouterLink v-if="index < CASES.length - 1" class="btn btn-secondary" :to="`/cases/${CASES[index + 1].caseId}`">下一个案例 →</RouterLink><span v-else></span>
+      </div>
+    </section>
   </main>
 </template>

@@ -7,6 +7,7 @@ const routes = [
   { path: '/cases', component: () => import('../pages/CasesPage.vue') },
   { path: '/cases/:caseId', name: 'case-detail', component: () => import('../pages/CaseDetailPage.vue') },
   { path: '/simulation', component: () => import('../pages/SimulationPage.vue') },
+  { path: '/visualization', component: () => import('../pages/VisualizationPage.vue') },
   { path: '/about', component: () => import('../pages/AboutPage.vue') },
   { path: '/404', component: () => import('../pages/NotFoundPage.vue') },
   { path: '/:pathMatch(.*)*', redirect: '/404' }
