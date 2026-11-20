@@ -31,15 +31,23 @@ jobs:
       - name: 安装 依赖
         run: npm ci
 
-      - name: 构建 项目
+      # 1. 正常默认编译 -> 用于常规产物与 Release
+      - name: 构建常规产物 (默认路径)
         run: npm run build
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Yuxi-Vue-website 
+          name: Vue-Yuxi-website
           path: dist/
           if-no-files-found: error
+
+      # 2. 带 --base=/linxi/ 编译 -> 专用于 GitHub Pages 部署
+      - name: 构建 Pages 产物 (base=/linxi/)
+        run: npm run build -- --base=/linxi/
+
+      - name: 复制 index.html 为 404.html
+        run: cp dist/index.html dist/404.html
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
@@ -59,12 +67,12 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: Yuxi-Vue-website
+          name: Vue-Yuxi-website
           path: dist/
 
       - name: Package website
         working-directory: dist
-        run: zip -r ../Yuxi-Vue-website.zip .
+        run: zip -r ../Vue-Yuxi-website.zip .
 
       - name: Publish release asset
         env:
@@ -72,11 +80,11 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           if assets=$(gh release view "$GITHUB_REF_NAME" --json assets --jq '.assets[].name'); then
-            if ! grep -Fxq 'Yuxi-Vue-website.zip' <<< "$assets"; then
-              gh release upload "$GITHUB_REF_NAME" Yuxi-Vue-website.zip
+            if ! grep -Fxq 'Vue-Yuxi-website.zip' <<< "$assets"; then
+              gh release upload "$GITHUB_REF_NAME" Vue-Yuxi-website.zip
             fi
           else
-            gh release create "$GITHUB_REF_NAME" Yuxi-Vue-website.zip \
+            gh release create "$GITHUB_REF_NAME" Vue-Yuxi-website.zip \
               --verify-tag \
               --title "Vue-Yuxi Frontend $GITHUB_REF_NAME" \
               --notes "FlowViz 业务前端演示构建。" \
@@ -85,13 +93,13 @@ jobs:
 
  
   deploy:
+      name: 部署到 GitHub Pages
+      needs: build
       environment:
         name: github-pages
         url: ${{ steps.deployment.outputs.page_url }}
-      needs: build
       runs-on: ubuntu-latest
       steps:
         - name: Deploy to GitHub Pages
           id: deployment
           uses: actions/deploy-pages@v4
-      
