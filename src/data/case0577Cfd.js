@@ -1,5 +1,6 @@
 const sources = {
   surfacePressure: ['surface-pressure.json', 'kPa'],
+  volumePressure: ['volume-pressure.json', 'kPa'],
   speed: ['volume-speed.json', 'm/s'],
   ux: ['volume-speed.json', 'm/s'],
   uy: ['volume-speed.json', 'm/s'],
@@ -7,18 +8,37 @@ const sources = {
 }
 const requests = new Map()
 
-export function loadCase0577Field(field) {
-  return loadPointField('0577', 'case-0577', 'reference', field)
+export const referenceCaseIds = ['0415', '0577', '0072']
+
+export function loadReferenceField(caseId, field) {
+  if (!referenceCaseIds.includes(caseId)) return null
+  return loadPointField(caseId, `case-${caseId}`, 'reference', field)
 }
 
 export const syntheticCaseId = 'synthetic-pipe-000'
 
+export function supportsPointField(datasetId, field) {
+  return Object.hasOwn(sources, field) &&
+    (datasetId !== syntheticCaseId || field !== 'volumePressure')
+}
+
 export function isSyntheticDemo(query) {
-  return !query?.case || (query.demo === syntheticCaseId && query.case !== '0577')
+  return !query?.case || (query.demo === syntheticCaseId && !referenceCaseIds.includes(query.case))
 }
 
 export function loadSyntheticField(field) {
+  if (!supportsPointField(syntheticCaseId, field)) return null
   return loadPointField(syntheticCaseId, syntheticCaseId, 'synthetic', field)
+}
+
+export async function loadReferenceRange(field) {
+  const datasets = await Promise.all(referenceCaseIds.map((caseId) => loadReferenceField(caseId, field)))
+  if (datasets.some((data) => !data)) return null
+  return {
+    min: Math.min(...datasets.map((data) => data.min)),
+    max: Math.max(...datasets.map((data) => data.max)),
+    unit: datasets[0].unit,
+  }
 }
 
 async function loadPointField(caseId, directory, layer, field) {

@@ -1,13 +1,15 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { createDemoFieldData } from '../data/demoFieldData.js'
-import { isSyntheticDemo, loadCase0577Field, loadSyntheticField, syntheticCaseId } from '../data/case0577Cfd.js'
+import { isSyntheticDemo, loadReferenceField, loadSyntheticField, referenceCaseIds, syntheticCaseId } from '../data/case0577Cfd.js'
 
 const props = defineProps({
   field: { type: String, default: 'speed' },
+  datasetId: String,
+  dataField: String,
+  sharedRange: Object,
   playing: Boolean,
   palette: { type: String, default: 'viridis' },
   pointSize: { type: String, default: 'medium' },
@@ -20,13 +22,9 @@ const props = defineProps({
   selectedIndex: { type: Number, default: -1 },
   compactView: Boolean,
 })
-const emit = defineEmits(['point-hover', 'point-select', 'point-clear', 'camera-change', 'interaction-start'])
+const emit = defineEmits(['point-hover', 'point-select', 'point-clear', 'camera-change', 'interaction-start', 'data-range'])
 const host = ref(null)
-const route = useRoute()
-const case0577 = computed(() => String(route?.query.case ?? '') === '0577')
-const syntheticDemo = computed(() => isSyntheticDemo(route?.query))
-const staticDataset = computed(() => syntheticDemo.value ? 'synthetic' : case0577.value ? 'cfd' : '')
-const cfdField = computed(() => String(route?.query.field ?? 'surfacePressure'))
+const syntheticDemo = computed(() => props.datasetId === syntheticCaseId)
 const cfdStatus = ref('')
 const cfdNotice = ref('')
 let cfdData = null
@@ -73,7 +71,7 @@ function pointInfo(index) {
 }
 
 function setQuality(value) {
-  if (!points || staticDataset.value) return
+  if (!points || props.datasetId) return
   disposePoints()
   makePoints(pointCounts[value] || pointCounts.balanced)
   restoreSelectedMarker()
@@ -111,27 +109,29 @@ async function updateDataset() {
   disposePoints()
   fieldData = null
   cfdData = null
+  emit('data-range', null)
   cfdStatus.value = ''
   cfdNotice.value = ''
-  for (const object of staticObjects.slice(0, 2)) object.visible = !staticDataset.value
+  for (const object of staticObjects.slice(0, 2)) object.visible = !props.datasetId
 
-  if (!staticDataset.value) {
+  if (!props.datasetId) {
     makePoints()
     restoreSelectedMarker()
     return
   }
   const synthetic = syntheticDemo.value
-  const label = synthetic ? `${syntheticCaseId} · 合成演示数据` : 'Case 0577 CFD 参考数据'
+  const datasetId = props.datasetId
+  const label = synthetic ? `${syntheticCaseId} · 合成演示数据` : `Case ${datasetId} · CFD 参考数据`
   if (props.layer !== 'reference') {
     cfdStatus.value = synthetic ? `${label} · 此栏无预测或误差数据，请选择「参考值」查看合成点云。` :
-      'Case 0577 暂无同点位预测或误差数据。请选择参考值。'
+      `Case ${datasetId} 暂无同点位预测或误差数据。请选择参考值。`
     return
   }
 
   cfdStatus.value = `正在读取 ${label}…`
   try {
-    const loadField = synthetic ? loadSyntheticField : loadCase0577Field
-    const data = await loadField(cfdField.value)
+    const field = props.dataField
+    const data = await (synthetic ? loadSyntheticField(field) : loadReferenceField(datasetId, field))
     if (version !== loadVersion || webglError.value) return
     if (!data) {
       cfdStatus.value = `${label} · 此物理场暂无数据。`
@@ -140,6 +140,7 @@ async function updateDataset() {
     cfdData = data
     renderPoints(data.displayPositions)
     restoreSelectedMarker()
+    emit('data-range', { min: data.min, max: data.max, unit: data.unit })
     cfdNotice.value = `${label} · ${data.values.length.toLocaleString()} 点 · ${data.min.toPrecision(5)} ～ ${data.max.toPrecision(5)} ${data.unit}`
     cfdStatus.value = ''
   } catch {
@@ -153,12 +154,13 @@ function colorPoints() {
   const stops = palettes[props.palette] || palettes.viridis
   const stopColors = stops.map((color) => new THREE.Color(color))
   const temp = new THREE.Color()
+  const scale = cfdData && (props.sharedRange ?? cfdData)
   for (let i = 0; i < colors.count; i++) {
     const rawValue = cfdData?.values[i] ?? fieldValue(i) ?? 0
     let v = rawValue
-    if (cfdData) {
-      const range = cfdData.max - cfdData.min
-      v = range ? (rawValue - cfdData.min) / range : 0.5
+    if (scale) {
+      const span = scale.max - scale.min
+      v = span ? THREE.MathUtils.clamp((rawValue - scale.min) / span, 0, 1) : 0.5
     } else if (props.layer === 'error') {
       v = THREE.MathUtils.clamp(rawValue / 0.145, 0, 1)
     }
@@ -381,13 +383,13 @@ onMounted(() => {
   animate()
 })
 
-watch([staticDataset, cfdField, () => props.layer], ([active], [wasActive]) => {
+watch(() => [props.datasetId, props.dataField, props.layer], ([active], [wasActive]) => {
   if (active || wasActive) {
     emit('point-clear')
     updateDataset()
   }
 })
-watch(() => [props.field, props.palette, props.layer], colorPoints)
+watch(() => [props.field, props.palette, props.layer, props.sharedRange], colorPoints)
 watch(() => props.pointSize, (value) => {
   const size = pointSizes[value] || pointSizes.medium
   if (points) points.material.size = size
