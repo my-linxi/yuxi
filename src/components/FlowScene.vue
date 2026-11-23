@@ -3,7 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { createDemoFieldData } from '../data/demoFieldData.js'
-import { loadReferenceField, loadSyntheticField, syntheticCaseId } from '../data/case0577Cfd.js'
+import { isSyntheticDemo, loadReferenceField, loadSyntheticField, referenceCaseIds, syntheticCaseId } from '../data/case0577Cfd.js'
 
 const props = defineProps({
   field: { type: String, default: 'speed' },

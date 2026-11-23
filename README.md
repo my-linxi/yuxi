@@ -103,7 +103,7 @@ location /flowviz/ {
 1. 数据组给出正式案例 JSON 后，将 `caseInfo.parameterSchema` 中的演示占位参数替换为真实 JSON 中 `presets` 和 `fields` 的字段结构；不要自行造数据。改动字段前应先与团队确认接口契约。
 2. Mock 组提供 `submitSimulation()` 后，在 `SimulationPage.vue` 替换 `submitSimulationPreview()`；创建成功后通过 `router.push('/tasks/' + taskId)` 跳转；任务状态页与结果页交给其他组员维护。
 3. 三维预览默认显示合成样例。从案例详情进入预览可查看 Case 0415、0577 和 0072 的 CFD 参考点云。各案例的近壁面压力、体积压力和速度 JSON 位于 `public/cfd/case-<ID>/reference/`。
-4. 首页和案例库的案例卡使用 CFD 体积压力参考点云生成的缩略图。案例卡的预测值与绝对误差预览，以及案例详情页的流场图，等待数据组提供对应数据或授权图片。
+4. 数据组提供论文授权预览图后，将 `CaseCard.vue` 和 `CaseDetailPage.vue` 的装饰性占位区域替换成真实案例图；
 5. 当前主导航中的“历史记录（待接入）”为不可点击提示，等历史组完成 `/history` 再改为实际路由。
 
 ---
